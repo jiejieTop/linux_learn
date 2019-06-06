@@ -69,6 +69,7 @@ int main(void)
 
     /*取出两个文件描述符中的较大者*/
     maxfd = MAX(MAX(fds[0], fds[1]), fds[2]);
+    
     /*初始化读集合 inset，并在读集合中加入相应的描述集*/
     FD_ZERO(&inset);
     for (i = 0; i < IN_FILES; i++)
