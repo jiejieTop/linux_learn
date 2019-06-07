@@ -25,7 +25,7 @@ int main(void)
 	
 	printf("open src_file with read only\n");
 	/* 以只读方式打开源文件 */
-	src_file = open(SRC_FILE_NAME, O_RDONLY | O_CREAT, 0644);
+	src_file = open(SRC_FILE_NAME, O_RDONLY);
 	
 	printf("open dest_file with write only\n");
 	/* 以只写方式打开目标文件，若此文件不存在则创建该文件, 访问权限值为 644 */
@@ -54,6 +54,28 @@ int main(void)
 		close(dest_file);
 		close(src_file);
 	}
+
+	/** 开始读取目标文件 */
+	printf("start read dest_file\n");
+	printf("*****************************************\n");
+
+	dest_file = open(DEST_FILE_NAME, O_RDONLY);
+	if(dest_file < 0)
+	{
+		printf("open dest_file fail\n");
+		exit(1);
+	}
+
+	/* 将目标文件的读写指针移到开始 */
+	lseek(dest_file, 0, SEEK_SET);
+
+	/** 读取数据并且打印出来 */
+	while ((real_read_len = read(src_file, buff, sizeof(buff))) > 0)
+	{
+		printf("%s",buff);
+	}
+
+	printf("*****************************************\n");
 
 	return 0;
 }

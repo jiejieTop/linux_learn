@@ -1,52 +1,17 @@
-/* copy_file.c */
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
+蔡杰，一个梦想成为物联网全栈开发工
+程师的应届毕业生，从大三暑假参加工作至
+今（2018.07-2019.06），有扎实的专业基
+础，在校期间多次参加电子专业相关比赛，
+并且担任信息工程学院单片机协会会长一
+职，管理单片机协会实验室，带领师弟师妹
+学习单片机相关知识，经常逛论坛、看博客、
+写文章，乐亍分享与交流，在 21ic 中国电
+子网、意法半导体 stm32 中文社区、融创
+芯城等论坛担任版主。 热衷亍技术，眼界开
+阔，对编程软件方面技术有浓厚的兴趣，既
+能独立完成任务也能与团队配合完成任务。
 
-#define BUFFER_SIZE 1024 /* 每次读写缓存大小，影响运行效率*/
-
-#define SRC_FILE_NAME "src_file" /* 源文件名 */
-
-#define DEST_FILE_NAME "dest_file" /* 目标文件名文件名 */
-
-#define OFFSET 	10240 /* 复制的数据大小 */
-
-
-int main(void)
-{
-	int src_file, dest_file;	/* 文件描述符 */
-	
-	unsigned char buff[BUFFER_SIZE];
-	
-	int real_read_len;
-	
-	/* 以只读方式打开源文件 */
-	src_file = open(SRC_FILE_NAME, O_RDONLY | O_CREAT, 0644);
-	
-	/* 以只写方式打开目标文件，若此文件不存在则创建该文件, 访问权限值为 644 */
-	dest_file = open(DEST_FILE_NAME, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-	
-	if (src_file < 0 || dest_file < 0)
-	{
-		printf("Open file error\n");
-		exit(1);
-	}
-	
-	/* 将源文件的读写指针移到最后 10KB 的起始位置*/
-	lseek(src_file, -OFFSET, SEEK_END);
-	
-	/* 读取源文件的最后 10KB 数据并写到目标文件中，每次读写 1KB */
-	while ((real_read_len = read(src_file, buff, sizeof(buff))) > 0)
-	{
-		write(dest_file, buff, real_read_len);
-	}
-	
-	close(dest_file);
-	close(src_file);
-
-	
-	return 0;
-}
+电话：130 6856 5173
+邮箱：jiejietop@gmail.com
+博客：https://blog.csdn.net/jiejiemcu
+GitHub：https://github.com/jiejieTop
