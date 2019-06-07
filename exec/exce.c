@@ -27,11 +27,20 @@
  */
 
 
-
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int main(void)
 {
-
+    if(fork() == 0)
+    {
+        /** 调用excel函数，这里是要给出 ps 程序所在的完整路径 */
+        if(execl("/bin/ps", "ps", "-ef", NULL) < 0)
+        {
+            printf("excel error\n");
+        }
+    }
 
     return 0;
 }
