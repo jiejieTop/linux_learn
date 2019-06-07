@@ -48,6 +48,7 @@ int main(void)
 		write(dest_file, buff, real_read_len);
 	}
 	
+	/** 同步文件 */
 	if(fsync(dest_file) == 0)
 	{
 		printf("wait all data write to the dest_file\n");
