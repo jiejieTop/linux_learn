@@ -39,12 +39,12 @@ int main(void)
 
     if(fork() == 0)
     {
-        // printf("**********************************************\n");
-        // /*调用 execlp()函数，这里相当于调用了"ps -ef"命令*/
-        // if ((execlp("ps", "ps", "-ef", NULL)) < 0)
-        // {
-        //     printf("Execlp error\n");
-        // }
+        printf("**********************************************\n");
+        /*调用 execlp()函数，这里相当于调用了"ps -ef"命令*/
+        if ((execlp("ps", "ps", "-ef", NULL)) < 0)
+        {
+            printf("Execlp error\n");
+        }
         
         // printf("**********************************************\n");
         // /** 调用excel函数，这里是要给出 ps 程序所在的完整路径 */
@@ -61,13 +61,12 @@ int main(void)
         //     printf("Execle error\n");
         // }
 
-        printf("**********************************************\n");
+        // printf("**********************************************\n");
 
-        if (execve("/usr/bin/env", arg, envp) < 0)
-        {
-            printf("Execve error\n");
-        }
-
+        // if (execve("/usr/bin/env", arg, envp) < 0)
+        // {
+        //     printf("Execve error\n");
+        // }
     }
 
     return 0;
