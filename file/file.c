@@ -23,9 +23,11 @@ int main(void)
 	
 	int real_read_len;
 	
+	printf("open src_file with read only\n");
 	/* 以只读方式打开源文件 */
 	src_file = open(SRC_FILE_NAME, O_RDONLY | O_CREAT, 0644);
 	
+	printf("open dest_file with write only\n");
 	/* 以只写方式打开目标文件，若此文件不存在则创建该文件, 访问权限值为 644 */
 	dest_file = open(DEST_FILE_NAME, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	
@@ -35,18 +37,23 @@ int main(void)
 		exit(1);
 	}
 	
+	printf("move pointer to file end\n");
 	/* 将源文件的读写指针移到最后 10KB 的起始位置*/
 	lseek(src_file, -OFFSET, SEEK_END);
 	
 	/* 读取源文件的最后 10KB 数据并写到目标文件中，每次读写 1KB */
 	while ((real_read_len = read(src_file, buff, sizeof(buff))) > 0)
 	{
+		printf("write data to dest_file\n");
 		write(dest_file, buff, real_read_len);
 	}
 	
-	close(dest_file);
-	close(src_file);
+	if(fsync(dest_file) == 0)
+	{
+		printf("wait all data write to the dest_file\n");
+		close(dest_file);
+		close(src_file);
+	}
 
-	
 	return 0;
 }
