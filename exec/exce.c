@@ -33,13 +33,41 @@
 
 int main(void)
 {
+    /*命令参数列表，必须以 NULL 结尾*/
+    char *arg[] = {"env", NULL};
+    char *envp[]={"PATH=/tmp","USER=david", NULL};
+
     if(fork() == 0)
     {
-        /** 调用excel函数，这里是要给出 ps 程序所在的完整路径 */
-        if(execl("/bin/ps", "ps", "-ef", NULL) < 0)
+        // printf("**********************************************\n");
+        // /*调用 execlp()函数，这里相当于调用了"ps -ef"命令*/
+        // if ((execlp("ps", "ps", "-ef", NULL)) < 0)
+        // {
+        //     printf("Execlp error\n");
+        // }
+        
+        // printf("**********************************************\n");
+        // /** 调用excel函数，这里是要给出 ps 程序所在的完整路径 */
+        // if(execl("/bin/ps", "ps", "-ef", NULL) < 0)
+        // {
+        //     printf("excel error\n");
+        // }
+
+        // printf("**********************************************\n");
+
+        // /*调用 execle()函数，注意这里也要指出 env 的完整路径*/
+        // if (execle("/usr/bin/env", "env", NULL, envp) < 0)
+        // {
+        //     printf("Execle error\n");
+        // }
+
+        printf("**********************************************\n");
+
+        if (execve("/usr/bin/env", arg, envp) < 0)
         {
-            printf("excel error\n");
+            printf("Execve error\n");
         }
+
     }
 
     return 0;
