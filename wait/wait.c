@@ -95,6 +95,8 @@ int main()
         {
             printf("Some error occured.\n");
         }
+        
+        exit(0);
     }
 }
 
