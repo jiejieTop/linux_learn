@@ -72,6 +72,33 @@
  * act：指向结构 sigaction 的一个实例的指针，指定对特定信号的处理
  * oldact：保存原来对相应信号的处理
  * 
+ * struct sigaction {
+ *  void (*sa_handler)(int);
+ *  void (*sa_sigaction)(int, siginfo_t *, void *);
+ *  sigset_t sa_mask;
+ *  int sa_flags;
+ *  void (*sa_restorer)(void);
+ * };
+ * 
+ * sa_handler 是一个函数指针， 用来指定信号发生时调用的处理函数；
+ *   sa_sigaction 则是另外一个信号处理函数，它有三个参数，可以获得关于信号的更
+ * 详细的信息； 当 sa_flags 成员的值包含了 SA_SIGINFO 标志时，系统将使用
+ * sa_sigaction 函数作为信号的处理函数，否则将使用 sa_handler；
+ *   sa_mask 成员用来指定在信号处理函数执行期间需要被屏蔽的信号，特别是当某个
+ * 信号正被处理时，它本身会被自动地放入进程的信号掩码，因此在信号处理函数执
+ * 行期间， 这个信号都不会再度发生。可以使用 sigemptyset()、 sigaddset()、 sigdelset()
+ * 分别对这个信号集进行清空、增加和删除被屏蔽信号的操作；
+ *   sa_flags 成员用于指定信号处理的行为，它可以是以下值的“按位或” 组合：
+ *   SA_RESTART：使被信号打断的系统调用自动重新发起；
+ *   SA_NOCLDSTOP：使父进程在它的子进程暂停或继续运行时不会收到SIGCHLD 信号；
+ * SA_NOCLDWAIT：使父进程在它的子进程退出时不会收到 SIGCHLD 信号，
+ * 这时子进程如果退出也不会成为僵尸进程；
+ *   SA_NODEFER：使对信号的屏蔽无效，即在信号处理函数的执行期间仍能发出这个信号；
+ *   SA_RESETHAND：信号被处理后重新设置处理方式到默认值；
+ *   SA_SIGINFO：使用 sa_sigaction 成员而不是 sa_handler 作为信号处理函数。
+ *   re_restorer 成员则是一个已经废弃的数据域，不要使用。
+ *  
+ * 
  * retern:
  *   成功：以前的信号处理配置
  *   出错：-1
