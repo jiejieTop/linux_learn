@@ -10,19 +10,23 @@
  * 
  * 函数原型: int shmget(key_t key, int size, int shmflg)
  * 函数传入值:
- *  key：共享内存的键值，多个进程可以通过它访问同一个共享内存，其中有个特殊值 IPC_PRIVATE。它用于创建当前进程的私有共享内存
+ *  key：共享内存的键值，多个进程可以通过它访问同一个共享内存，如果指定为 IPC_PRIVATE，则会自动产生一个随机未用的新键值。
  *  size：共享内存区大小
- *  shmflg：同 open()函数的权限位，也可以用八进制表示法
+ *  shmflg：
+ *     IPC_CREAT ：共享内存不存在才创建；
+ *     IPC_EXCL ：如果指定了 IPC_CREAT，但共享内存已经存在时返回错误；
+ *     SHM_HUGETLB ：使用大页面分配共享内存
+ *    同 open()函数的权限位，也可以用八进制表示法
  * 函数返回值:
  *  成功：共享内存段标识符
  *  出错： -1
  * 
  * 函数原型 char *shmat(int shmid, const void *shmaddr, int shmflg)
  * 函数传入值:
- *  shmid：要映射的共享内存区标识符
- *  shmaddr：将共享内存映射到指定地址（若为 0 则表示系统自动分配地址并把该段共享内存映射到调用进程的地址空间）
+ *  shmid：要映射的共享内存区标识符(ID)
+ *  shmaddr：将共享内存映射到指定地址（若为 NULL 则表示系统自动分配地址并把该段共享内存映射到调用进程的地址空间）
  *  shmflg:
- *    SHM_RDONLY：共享内存只读
+ *    SHM_RDONLY： 共享内存只读
  *    默认 0：共享内存可读写
  * 函数返回值
  *  成功：被映射的段地址
@@ -33,7 +37,26 @@
  * 函数返回值: 
  *  成功： 0
  *  出错： -1
+ * 
+ * 获取或设置共享内存相关信息
+ * 原型:int shmctl(int shmid，int cmd，struct shmid_ds*buf)
+ * shmid :共享内存ID
+ * cmd:
+ *  IPC_STAT :获取属性信息，放置到buf中
+ *  IPC_SET :设置属性信息为buf指向的内容
+ *  IPC_RMID :将共享内存标记为“即将被删除”状态
+ *  IPC_INFO :获得关于共享内存的系统限制值信息
+ *  SHM_INFo :获得系统为共享内存消耗的资源信息
+ *  SHM_STAT :同IPC_STAT，但shmid为该SHM在内核中记录所有SHM信息的数组的下标，因此通过迭代所有的下标可以获得系统中所有SHM的相关信息
+ *  SHM_LOCK :禁止系统将该SHM交换至swap分区
+ *  SHM_UNLOCK :允许系统将该SHM交换至swap分区buf属性信息结构体指针
+ * 返回值
+ *  IPC_INFO :内核中记录所有SHM信息的数组的下标最大值成功
+ *  SHM_INFO :内核中记录所有SHM信息的数组的下标最大值成功
+ *  SHM_STAT :下标值为shmid的SHM的ID
+ *  失败:-1
  */
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -45,6 +68,7 @@
 
 
 #define BUFFER_SIZE 2048
+
 int main()
 {
     pid_t pid;
@@ -53,13 +77,12 @@ int main()
     char flag[] = "WROTE";
     char *buff;
 
-    /* 创建共享内存 */
-    if ((shmid = shmget(IPC_PRIVATE, BUFFER_SIZE, 0666)) < 0)
+    /* 创建共享内存,父子进程共用 */
+    if ((shmid = shmget(IPC_PRIVATE, BUFFER_SIZE, IPC_CREAT|0666)) < 0)
     {
         perror("shmget");
         exit(1);
     }
-
     else
     {
         printf("Create shared-memory: %d\n",shmid);
