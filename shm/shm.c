@@ -34,13 +34,16 @@
  *  成功： 0
  *  出错： -1
  */
-
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/wait.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
 #define BUFFER_SIZE 2048
 int main()
 {
@@ -159,6 +162,6 @@ int main()
         waitpid(pid, NULL, 0);
         printf("Finished\n");
     }
-    
+
     exit(0);
 }
