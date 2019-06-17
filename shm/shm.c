@@ -10,7 +10,7 @@
  * 
  * 函数原型: int shmget(key_t key, int size, int shmflg)
  * 函数传入值:
- *  key：共享内存的键值，多个进程可以通过它访问同一个共享内存，如果指定为 IPC_PRIVATE，则会自动产生一个随机未用的新键值。
+ *  key：共享内存的键值，多个进程可以通过它访问同一个共享内存，如果指定为 IPC_PRIVATE ，则会自动产生一个随机未用的新键值。
  *  size：共享内存区大小
  *  shmflg：
  *     IPC_CREAT ：共享内存不存在才创建；
@@ -21,7 +21,7 @@
  *  成功：共享内存段标识符
  *  出错： -1
  * 
- * 函数原型 char *shmat(int shmid, const void *shmaddr, int shmflg)
+ * 函数原型 void *shmat(int shmid, const void *shmaddr, int shmflg)
  * 函数传入值:
  *  shmid：要映射的共享内存区标识符(ID)
  *  shmaddr：将共享内存映射到指定地址（若为 NULL 则表示系统自动分配地址并把该段共享内存映射到调用进程的地址空间）
@@ -55,6 +55,11 @@
  *  SHM_INFO :内核中记录所有SHM信息的数组的下标最大值成功
  *  SHM_STAT :下标值为shmid的SHM的ID
  *  失败:-1
+ * 
+ * 共享内存在父子进程间遵循的约定
+ * 1.使用 fork() 函数创建一个子进程后，该进程继承父亲进程挂载的共享内存。
+ * 2.如果调用 exec() 执行一个新的程序，则所有挂载的共享内存将被自动卸载。
+ * 3.如果在某个进程中调用了 exit() 函数，所有挂载的共享内存将与当前进程脱离关系。
  */
 
 #include <unistd.h>
@@ -67,124 +72,47 @@
 #include <string.h>
 
 
-#define BUFFER_SIZE 2048
+#define SHM_SIZE 2048
 
 int main()
 {
-    pid_t pid;
-    int shmid;
-    char *shm_addr;
-    char flag[] = "WROTE";
-    char *buff;
+    int shm_id, pid; 
+    int *ptr = NULL;
 
-    /* 创建共享内存,父子进程共用 */
-    if ((shmid = shmget(IPC_PRIVATE, BUFFER_SIZE, IPC_CREAT|0666)) < 0)
+    /** 创建一个共享内存 */
+    shm_id = shmget(IPC_PRIVATE, SHM_SIZE, IPC_CREAT|0644);
+
+    /** 映射共享内存 */
+    ptr = (int *)shmat(shm_id, NULL, 0);
+
+    printf("Attach addr is %p \n", ptr);
+
+    *ptr = 1004;
+
+    printf("The Value of Parent is : %d \n", *ptr);
+
+    if((pid=fork()) == -1)
     {
-        perror("shmget");
-        exit(1);
+        perror("fork Err");
+        exit(0);
     }
+
+    else if(!pid)
+    {
+        printf("The Value of Child is : %d \n", *ptr);
+        exit(0);
+    }
+
     else
     {
-        printf("Create shared-memory: %d\n",shmid);
-    }
-
-    /* 显示共享内存情况 */
-    system("ipcs -m");
-
-    pid = fork();
-    if (pid == -1)
-    {
-        perror("fork");
-        exit(1);
-    }
-
-    else if (pid == 0) /* 子进程处理 */
-    {
-        /*映射共享内存*/
-        if ((shm_addr = shmat(shmid, 0, 0)) == (void*)-1)
-        {
-            perror("Child: shmat");
-            exit(1);
-        }
-
-        else
-        {
-            printf("Child: Attach shared-memory: %p\n", shm_addr);
-        }
-
-        system("ipcs -m");
-        /* 通过检查在共享内存的头部是否标志字符串"WROTE"来确认父进程已经向共享内存写入有效数据 */
-        while (strncmp(shm_addr, flag, strlen(flag)))
-        {
-            printf("Child: Wait for enable data...\n");
-            sleep(5);
-        }
-
-        /* 获取共享内存的有效数据并显示 */
-        strcpy(buff, shm_addr + strlen(flag));
-        printf("Child: Shared-memory :%s\n", buff);
-
-        /* 解除共享内存映射 */
-        if ((shmdt(shm_addr)) < 0)
-        {
-            perror("shmdt");
-            exit(1);
-        }
-        else
-        {
-            printf("Child: Deattach shared-memory\n");
-        }
-        system("ipcs -m");
-        /* 删除共享内存 */
-        if (shmctl(shmid, IPC_RMID, NULL) == -1)
-        {
-            perror("Child: shmctl(IPC_RMID)\n");
-            exit(1);
-        }
-
-        else
-        {
-            printf("Delete shared-memory\n");
-        }
-
-        system("ipcs -m");
-    }
-    
-    else /* 父进程处理 */
-    {
-        /*映射共享内存*/
-        if ((shm_addr = shmat(shmid, 0, 0)) == (void*)-1)
-        {
-            perror("Parent: shmat");
-            exit(1);
-        }
-
-        else
-        {
-            printf("Parent: Attach shared-memory: %p\n", shm_addr);
-        }
-
         sleep(1);
-        printf("\nInput some string:\n");
-        fgets(buff, BUFFER_SIZE, stdin);
-        strncpy(shm_addr + strlen(flag), buff, strlen(buff));
-        strncpy(shm_addr, flag, strlen(flag));
 
-        /* 解除共享内存映射 */
-        if ((shmdt(shm_addr)) < 0)
-        {
-            perror("Parent: shmdt");
-            exit(1);
-        }
-        else
-        {
-            printf("Parent: Deattach shared-memory\n");
-        }
-
-        system("ipcs -m");
-        waitpid(pid, NULL, 0);
-        printf("Finished\n");
+        /* 解除映射 */
+        shmdt(ptr);
+        
+        /* 删除共享内存 */
+        shmctl(shm_id, IPC_RMID, 0);
     }
 
-    exit(0);
+    return 0;
 }
