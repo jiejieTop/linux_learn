@@ -79,6 +79,10 @@ int main()
     int shm_id, pid; 
     int *ptr = NULL;
 
+    struct shmid_ds buf;
+
+    buf.
+
     /** 创建一个共享内存 */
     shm_id = shmget(IPC_PRIVATE, SHM_SIZE, IPC_CREAT|0644);
 
