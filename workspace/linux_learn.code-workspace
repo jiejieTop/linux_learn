@@ -4,11 +4,5 @@
 			"path": "/home/jiejie/linux/linux_learn"
 		}
 	],
-	"settings": {
-		"files.associations": {
-			"limits.h": "c",
-			"climits": "c",
-			"unistd.h": "c"
-		}
-	}
+	"settings": {}
 }
