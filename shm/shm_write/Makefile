@@ -40,7 +40,7 @@ SRC = $(wildcard *.c */*.c)
 OBJS = $(patsubst %.c, %.o, $(SRC))
 DEP_FILES := $(patsubst %, .%.d,$(OBJS))
 DEP_FILES := $(wildcard $(DEP_FILES))
-FLAG = -g -Werror -I. -Iinclude
+FLAG = -g -Werror -I. -I../include
 TARGET = test
 
 $(TARGET):$(OBJS)
