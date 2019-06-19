@@ -13,7 +13,7 @@ int main()
 	char buffer[BUFSIZ + 1];//用于保存输入的文本
 	int shmid;
 	//创建共享内存
-	shmid = shmget((key_t)1234, sizeof(struct shared_use_st), 0666|IPC_CREAT);
+	shmid = shmget(IPC_PRIVATE, sizeof(struct shared_use_st), 0644|IPC_CREAT);
 	if(shmid == -1)
 	{
 		fprintf(stderr, "shmget failed\n");
@@ -27,8 +27,10 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 	printf("Memory attached at %p\n", shm);
+
 	//设置共享内存
 	shared = (struct shared_use_st*)shm;
+
 	while(running)//向共享内存中写数据
 	{
 		//数据还没有被读取，则等待数据被读取,不能向共享内存中写入文本
@@ -41,12 +43,15 @@ int main()
 		printf("Enter some text: ");
 		fgets(buffer, BUFSIZ, stdin);
 		strncpy(shared->text, buffer, TEXT_SIZE);
+
 		//写完数据，设置written使共享内存段可读
 		shared->written = 1;
+
 		//输入了end，退出循环（程序）
 		if(strncmp(buffer, "end", 3) == 0)
 			running = 0;
 	}
+	
 	//把共享内存从当前进程中分离
 	if(shmdt(shm) == -1)
 	{
