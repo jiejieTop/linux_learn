@@ -13,7 +13,7 @@ int main()
 	char buffer[BUFSIZ + 1];//用于保存输入的文本
 	int shmid;
 	//创建共享内存
-	shmid = shmget(IPC_PRIVATE, sizeof(struct shared_use_st), 0644|IPC_CREAT);
+	shmid = shmget((key_t)1234, sizeof(struct shared_use_st), 0644|IPC_CREAT);
 	if(shmid == -1)
 	{
 		fprintf(stderr, "shmget failed\n");
@@ -51,7 +51,7 @@ int main()
 		if(strncmp(buffer, "end", 3) == 0)
 			running = 0;
 	}
-	
+
 	//把共享内存从当前进程中分离
 	if(shmdt(shm) == -1)
 	{
