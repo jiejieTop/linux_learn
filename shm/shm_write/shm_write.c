@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "shm_data.h"
-
+#include "../sem/sem.h"
 
 int main()
 {
@@ -17,7 +17,7 @@ int main()
 	struct shared_use_st *shared = NULL;
 	char buffer[BUFSIZ + 1];//用于保存输入的文本
 	int shmid;
-	sem_t *semid;;//信号量标识符
+	int semid;;//信号量标识符
 
 	//创建共享内存
 	shmid = shmget((key_t)1234, sizeof(struct shared_use_st), 0644|IPC_CREAT);
@@ -35,9 +35,9 @@ int main()
 	}
 	printf("Memory attached at %p\n", shm);
 
-	/** 打开信号量，不存在则创建 */
-	semid = sem_open("shm_sem", O_CREAT, 0644, 0);
-	if(semid == SEM_FAILED)
+    semid = semget((key_t)6666, 1, 0666|IPC_CREAT); /* 创建一个信号量*/
+
+	if(semid == -1)
 	{
 		printf("sem open fail\n");
 		exit(EXIT_FAILURE); 
@@ -62,7 +62,7 @@ int main()
 		//写完数据，设置written使共享内存段可读
 		shared->written = 1;
 
-		sem_post(semid);/* 通知读取信号量进程 */
+		sem_v(semid);/* 释放信号量 */
 
 		//输入了end，退出循环（程序）
 		if(strncmp(buffer, "end", 3) == 0)

@@ -1,12 +1,27 @@
+// #include <unistd.h>
+// #include <stdlib.h>
+// #include <stdio.h>
+// #include <string.h>
+// #include <sys/shm.h>
+//  #include <semaphore.h>
+// #include <sys/stat.h>
+// #include <fcntl.h>
+// #include <errno.h>
+
+
+#include <sys/types.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
+#include <sys/ipc.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/shm.h>
- #include <semaphore.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+
+#include "sem.h"
 #include "shm_data.h"
 
 int main(void)
@@ -15,7 +30,7 @@ int main(void)
 	void *shm = NULL;//分配的共享内存的原始首地址
 	struct shared_use_st *shared;//指向shm
 	int shmid;//共享内存标识符
-	sem_t *semid;;//信号量标识符
+    int semid;//信号量标识符
 
 	//创建共享内存
 	shmid = shmget((key_t)1234, sizeof(struct shared_use_st), 0666|IPC_CREAT);
@@ -35,12 +50,18 @@ int main(void)
 	printf("\nMemory attached at %p\n", shm);
 
 	/** 打开信号量，不存在则创建 */
-	semid = sem_open("shm_sem", O_CREAT, 0644, 0);
-	if(semid == SEM_FAILED)
+
+
+
+    semid = semget((key_t)6666, 1, 0666|IPC_CREAT); /* 创建一个信号量*/
+
+	if(semid == -1)
 	{
 		printf("sem open fail\n");
 		exit(EXIT_FAILURE); 
 	}
+
+	init_sem(semid, 0);
 
 	//设置共享内存
 	shared = (struct shared_use_st*)shm;
@@ -49,7 +70,7 @@ int main(void)
 	while(running)//读取共享内存中的数据
 	{
 		/** 等待心信号量 */
-		if(sem_wait(semid) == 0)
+		if(sem_p(semid) == 0)
 		{
 			//没有进程向共享内存定数据有数据可读取
 			if(shared->written != 0)
@@ -67,7 +88,7 @@ int main(void)
 		}
 	}
 
-	sem_close(semid);	/** 关闭信号量 */
+	del_sem(semid);	/** 删除信号量 */
 
 	//把共享内存从当前进程中分离
 	if(shmdt(shm) == -1)
