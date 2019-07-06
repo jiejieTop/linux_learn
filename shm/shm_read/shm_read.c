@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #include "sem.h"
+
 #include "shm_data.h"
 
 int main(void)
