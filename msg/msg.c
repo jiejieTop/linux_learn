@@ -8,4 +8,29 @@
  * 读取消息使用的函数是msgrcv()，它把消息从消息队列中取走，与 FIFO 不同的是，这里可以指定取走某一条消息；
  * 最后控制消息队列使用的函数是 msgctl()，它可以完成多项功能。
  * 
+ * 函数原型 int msgget(key_t key, int msgflg)
+ * 函数传入值
+ *   key：消息队列的键值，多个进程可以通过它访问同一个消息队列，其中有个特殊值 IPC_PRIVATE。它用于创建当前进程的私有消息队列
+ *   msgflg：权限标志位
+ * 函数返回值
+ *   成功：消息队列 ID
+ *   出错： -  1
+ * 
+ * 函数原型 int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg)
+ * 函数传入值
+ * msqid：消息队列的队列 ID
+ * msgp：指向消息结构的指针。该消息结构 msgbuf 通常为：
+ *   struct msgbuf
+ *   {
+ *       long mtype;  消息类型，该结构必须从这个域开始 
+ *       char mtext[1];  消息正文 
+ *   }
+ * msgsz：消息正文的字节数（不包括消息类型指针变量）
+ * msgflg
+ *   IPC_NOWAIT 若消息无法立即发送（比如：当前消息队列已满），函数会立即返回
+ *   0： msgsnd 调阻塞直到发送成功为止
+ * 函数返回值
+ *   成功： 0
+ *   出错： -1
+ * 
  */
