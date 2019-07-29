@@ -26,7 +26,42 @@
  * 数时，不能随意使用 exit()退出函数进行出错处理，由于 exit()的作用是使调用进程终止，往往一个进程包
  * 含多个线程，因此，在使用 exit()之后，该进程中的所有线程都终止了。因此，在线程中就可以使用
  * pthread_exit()来代替进程中的 exit()。
+ * 由于一个进程中的多个线程是共享数据段的，因此通常在线程退出之后，退出线程所占用的资源并不
+ * 会随着线程的终止而得到释放。正如进程之间可以用 wait()系统调用来同步终止并释放资源一样，线
+ * 程之间也有类似机制，那就是 pthread_join()函数。 pthread_join()可以用于将当前线程挂起来等待线程
+ * 的结束。这个函数是一个线程阻塞的函数，调用它的函数将一直等待到被等待的线程结束为止，当函数返回时，
+ * 被等待线程的资源就被收回。前面已提到线程调用 pthread_exit()函数主动终止自身线程。但是在很多线程应用中，
+ * 经常会遇到在别的线程中要终止另一个线程的执行的问题。此时调用 pthread_cancel()函数实现这种功能，
+ * 但在被取消的线程的内部需要调用 pthread_setcancel()函数和 pthread_setcanceltype()函数设置自己
+ * 的取消状态，例如被取消的线程接收到另一个线程的取消请求之后，是接受还是忽略这个请求；如果接受，
+ * 是立刻进行终止操作还是等待某个函数的调用等。
+ * 
+ * 函数原型 int pthread_create ((pthread_t *thread, pthread_attr_t *attr,void *(*start_routine)(void *), void *arg))
+ * 函数传入值
+ *  thread：线程标识符
+ *  attr：线程属性设置，通常取为 NULL
+ *  start_routine：线程函数的起始地址，是一个以指向 void 的指针作为参数和返回值的函数指针
+ *  arg：传递给 start_routine 的参数
+ * 函数返回值
+ *  成功： 0
+ *  出错：返回错误码
+ * 
+ * 函数原型 void pthread_exit(void *retval)
+ * 函数传入值 
+ *  retval：线程结束时的返回值，可由其他函数如 pthread_join()来获取
+ * 
+ * 函数原型 int pthread_join ((pthread_t th, void **thread_return))
+ * 函数传入值
+ *  th：等待线程的标识符
+ *  thread_return：用户定义的指针，用来存储被等待线程结束时的返回值（不为 NULL 时）
+ * 函数返回值
+ *  成功： 0
+ *  出错：返回错误码
+ * 
+ * 
  */
 
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
 
