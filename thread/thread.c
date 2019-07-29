@@ -58,10 +58,61 @@
  *  成功： 0
  *  出错：返回错误码
  * 
+ * 函数原型 int pthread_cancel((pthread_t th)
+ * 函数传入值 th：要取消的线程的标识符
+ * 函数返回值
+ *  成功： 0
+ *  出错：返回错误码
  * 
  */
 
+
+#include <unistd.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+
+void *test_thread(void *arg)
+{
+    int num = (unsigned long long)arg; /** sizeof(void*) == 8 and sizeof(int) == 4 (64 bits) */
+
+    printf("arg is %d\n", num);
+
+    pthread_exit(NULL);
+}
+
+
+int main(void)
+{
+    pthread_t thread;
+    void *thread_return;
+    int arg = 520;
+    int res;
+
+    printf("start create thread\n");
+
+    res = pthread_create(&thread, NULL, test_thread, (void*)(unsigned long long)(arg));
+    if(res != 0)
+    {
+        printf("create thread fail\n");
+        exit(res);
+    }
+
+    printf("create treads success\n");
+    printf("waiting for threads to finish...\n");
+
+
+    res = pthread_join(thread, &thread_return);
+    if(res != 0)
+    {
+        printf("thread exit fail\n");
+        exit(res);
+    }
+
+    printf("thread exit ok\n");
+
+    return 0;
+}
+
 
