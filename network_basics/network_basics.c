@@ -1,4 +1,4 @@
-/** tcp_client.c */
+/** network_basics.c */
 
 /**
  * 下面首先介绍两个重要的数据类型： sockaddr 和 sockaddr_in， 这两个结构类型都是用来保存 socket 信息的，如下所示：
